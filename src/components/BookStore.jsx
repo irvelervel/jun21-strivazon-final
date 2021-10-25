@@ -1,56 +1,47 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import BookList from "./BookList";
 import BookDetail from "./BookDetail";
 import { Alert, Col, Row, Spinner } from "react-bootstrap";
-import { connect } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { getBooksAction } from "../actions";
+const BookStore = () => {
 
-const mapStateToProps = (state) => ({
-  books: state.book.stock,
-  isError: state.book.isError,
-  isLoading: state.book.isLoading
-})
+  const [bookSelected, setBookSelected] = useState(null)
 
-const mapDispatchToProps = (dispatch) => ({
-  getBooks: () => {
-    dispatch(getBooksAction())
-  }
-})
+  const dispatch = useDispatch()
 
-class BookStore extends Component {
-  state = {
-    bookSelected: null,
-  };
+  const books = useSelector(state => state.book.stock)
+  const isError = useSelector(state => state.book.isError)
+  const isLoading = useSelector(state => state.book.isLoading)
 
-  componentDidMount = async () => {
+  useEffect(() => {
     // I'll need to invoke my action creator!
-    this.props.getBooks()
-  };
+    dispatch(getBooksAction())
+  }, [])
 
-  changeBook = (book) => this.setState({ bookSelected: book });
 
-  render() {
-    return this.props.isError ? (
-      <Alert variant="danger">Error fetching books in stock</Alert>
-    ) : this.props.isLoading ? (
-      <Spinner variant="success" animation="border" />
-    ) : (
-      <Row>
-        <Col md={4}>
-          <BookList
-            bookSelected={this.state.bookSelected}
-            changeBook={this.changeBook}
-            books={this.props.books}
-          />
-        </Col>
-        <Col md={8}>
-          <BookDetail
-            bookSelected={this.state.bookSelected}
-          />
-        </Col>
-      </Row>
-    );
-  }
+  const changeBook = (book) => setBookSelected(book);
+
+  return isError ? (
+    <Alert variant="danger">Error fetching books in stock</Alert>
+  ) : isLoading ? (
+    <Spinner variant="success" animation="border" />
+  ) : (
+    <Row>
+      <Col md={4}>
+        <BookList
+          bookSelected={bookSelected}
+          changeBook={changeBook}
+          books={books}
+        />
+      </Col>
+      <Col md={8}>
+        <BookDetail
+          bookSelected={bookSelected}
+        />
+      </Col>
+    </Row>
+  );
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(BookStore);
+export default BookStore;

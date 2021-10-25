@@ -7,6 +7,8 @@ import cartReducer from '../reducers/cart'
 import userReducer from '../reducers/user'
 import bookReducer from '../reducers/book'
 import thunk from 'redux-thunk'
+import { persistStore, persistReducer } from 'redux-persist'
+import localStorage from 'redux-persist/lib/storage'
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
@@ -27,19 +29,28 @@ export const initialState = {
   },
 }
 
+const persistConfig = {
+  key: 'root',
+  storage: localStorage,
+}
+
 const bigReducer = combineReducers({
   cart: cartReducer,
   user: userReducer,
   book: bookReducer,
 })
 
+const persistedReducer = persistReducer(persistConfig, bigReducer)
+
 // 2)
-const configureStore = createStore(bigReducer, initialState, composeEnhancers(applyMiddleware(thunk)))
+const configureStore = createStore(persistedReducer, initialState, composeEnhancers(applyMiddleware(thunk)))
 
 // now we'll use the third argument of createStore to INJECT a MIDDLEWARE into the flow
 // for applying a middleware we'll need to use a function from redux called applyMiddleware()
 
-export default configureStore
+const persistor = persistStore(configureStore)
+
+export { configureStore, persistor }
 
 // FUTURE ENHANCERS CAPABILITIES:
 // devTools enabling
